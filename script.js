@@ -50,6 +50,12 @@ window.addEventListener("load", () => {
       context.fillRect(this.x, this.y, this.size, this.size);
     }
 
+    squaredDistanceTo(x, y) {
+      const dx = x - this.x;
+      const dy = y - this.y;
+      return dx * dx + dy * dy;
+    }
+
     update() {
       this.dx = this.effect.mouse.x - this.x;
       this.dy = this.effect.mouse.y - this.y;
@@ -131,6 +137,7 @@ window.addEventListener("load", () => {
     }
 
     init(context) {
+      this.particlesArray = [];
       this.drawImage(context);
       const pixels = context.getImageData(0, 0, this.width, this.height).data;
 
@@ -177,13 +184,18 @@ window.addEventListener("load", () => {
           const color = getColor(this, pixels, index);
 
           if (color) {
-            const aParticle = this.particlesArray.pop();
+            const aParticle = [...this.particlesArray].sort(
+              (a, b) => -a.squaredDistanceTo(b.x, b.y)
+            )?.[0];
 
             if (aParticle) {
+              this.particlesArray = this.particlesArray.filter(
+                (p) => p !== aParticle
+              );
               aParticle.reinit(x, y, color);
               newParticles.push(aParticle);
             } else {
-              newParticles.push(new Particle(this, x, y, color));
+              //newParticles.push(new Particle(this, x, y, color));
             }
           }
         }
@@ -232,6 +244,8 @@ window.addEventListener("load", () => {
   }
 
   animate();
+
+  //   setInterval(() => effect.switch(ctx), 500);
 
   const warpButton = document.getElementById("warp");
   warpButton.addEventListener("click", () => {
